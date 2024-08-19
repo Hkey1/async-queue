@@ -2,7 +2,7 @@
 Async Queue (Throttler). For rate limiting.
 For example, you use an external API and the number of requests per second is limited there.
 
-* Fast: Uses very fast algorithms for storage (BinHeap). The complexity of the any operations is no more log(n);
+* Fast: Uses very fast algorithms for storage (BinHeap). The complexity of the any operation is no more log(n);
 * Simple to use
 * Can calculate remains time and limits usage
 * Can use priority
@@ -30,7 +30,7 @@ For example, you use an external API and the number of requests per second is li
 ```js
 	console.log(queue.length);
 ```
-### queue.usage() (Ыhare of usage of limits)
+### queue.usage() (Share of usage of limits)
 ```js
 	console.log(queue.usage() * 100 + '%');
 ```
@@ -43,7 +43,6 @@ For example, you use an external API and the number of requests per second is li
 ## promise
 ```js
 	const promise = queue.push();
-
 ```
 
 ### promise.remains() (Remains time (ms) till promise is called)
@@ -80,8 +79,9 @@ Promise throws Queue.AbortError
 		defaultPriority : 50, 		
 	}); //OR new Queue(30, 50)
 
+	queue.push(101, ()=>console.log(10));
 	queue.push(10,  ()=>console.log(10));
 	queue.push(100, ()=>console.log(100));
 
-	//100, 10
+	//101, 100, 10
 ```
