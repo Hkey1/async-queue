@@ -1,0 +1,29 @@
+{
+    "name": "async-queue",
+    "version": "0.0.1",
+    "main": "./index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Andrey Belousoff <a.v.belousoff@gmail.com>",
+    "license": "MIT",
+    "description": "Async Queue (Throttler). For rate limiting. For example, you use an external API and the number of requests per second is limited there.",
+    "keywords": [
+        "throttler", "throttle", "rate-limits", "rate-limiter","rateLimits", "rateLimiter", "heap", "queue" 
+    ],
+    "dependencies": {
+    },
+    "engines": {
+        "node": ">=0.1.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "git://github.com/hkey1/bin-heap"
+    },
+    "readme":"Async Queue (Throttler)",
+    "readmeFilename": "Readme.md",
+    "bugs": {
+        "url": "https://github.com/hkey1/bin-heap/issues"
+    },
+    "homepage": "https://github.com/hkey1/bin-heap"
+}
