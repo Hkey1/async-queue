@@ -1,3 +1,5 @@
+const Queue = require('./index.js');
+
 let lastTs = Date.now(); 
 function log(...args){
 	const dt  = (Date.now()-lastTs);
@@ -11,7 +13,6 @@ function log(...args){
 }
 
 (async ()=>{
-	const Queue = require('./index.js');
 	const queue = new Queue(30, 50); // OR new Queue(30);
 
 	await new Promise(resolve=>setTimeout(resolve, 1000));

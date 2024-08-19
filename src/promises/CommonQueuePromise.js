@@ -1,24 +1,7 @@
-const AbortError = require('./AbortError.js');
-let lastId = 1;
+const AbortError        = require('../AbortError.js');
+const SimplePromise     = require('./SimplePromise.js');
 
-class SimplePromise extends Promise{
-	constructor(first){
-		if(typeof(first)==='function'){
-			super(first);
-			this.isOverLoad = true;			
-		} else {
-			let __resolve, __reject;
-			super((resolve, reject)=>{
-				__resolve = resolve;
-				__reject  = reject;
-			})
-			this.__resolve = __resolve;
-			this.__reject  = __reject;
-		}
-	}	
-}
-
-class MyPromise extends SimplePromise{
+class CommonQueuePromise extends SimplePromise{
 	constructor(first){
 		super(first);
 		this.childs    = [];
@@ -88,7 +71,7 @@ class MyPromise extends SimplePromise{
 	remaining(){ return this.remain(); }	
 };
 
-class QueueChildPromise extends MyPromise{
+class QueueChildPromise extends CommonQueuePromise{ //по другому есть проблемы с загрузкой
 	constructor(parent, onFulfilled=undefined, onRejected=undefined, onFinally=undefined){
 		super(parent);
 		this.parent      = parent;
@@ -115,71 +98,4 @@ class QueueChildPromise extends MyPromise{
 	}
 };
 
-module.exports = class QueuePromise extends MyPromise{
-	constructor(queue, priority=undefined, cb=undefined){
-		if(typeof(queue)==='function'){
-			super(queue);
-			this.isOverLoad = true;		
-		} else {
-			super();
-			this.id          = lastId++;
-			this.ts          = Date.now();
-			this.queue       = queue;
-			this.priority    = priority;
-			this.cb          = cb;
-			this.isInStorage = undefined; //прописывается стором
-		}
-		this.childs = [];		
-	}
-    then(onFulfilled, onRejected) {
-		if(this.isOverLoad){
-			return super.then(onFulfilled, onRejected);
-		}
-        const res = super.then(onFulfilled, onRejected);
-        return res;
-    }
-	indexOf(){
-		return this.queue.indexOf(this);
-	}
-	remain(){
-		return this.queue.promiseRemain(this); 
-	}
-	resolve(res){
-		if(!this.isEnded){
-			this.isEnded = true;
-			this.stop();
-			this._resolve(res);
-		}
-	}
-	reject(err){
-		if(!this.isEnded){
-			this.isEnded = true;
-			this.stop();
-			this._reject(err);
-		}
-	}
-	stop(){
-		if(this.isInStorage){
-			this.queue.removePromise(this);
-			this.isInStorage = false;
-		}
-	}
-	async run(){
-		if(!this.isEnded){
-			this.stop();
-			if(this.cb){
-				try{
-					const res = await this.cb();
-					this.resolve(res);
-					return res;
-				} catch(e){
-					this.reject(e);
-				}
-			} else {
-				this.resolve(undefined);
-			} 
-		}
-	}
-};	
-
-module.exports.SimplePromise = SimplePromise;
+module.exports = CommonQueuePromise;

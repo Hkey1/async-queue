@@ -1,10 +1,11 @@
 const EventEmitter   = require('node:events');
-const QueuePromise   = require('./QueuePromise.js');
-const ArrayStorage   = require('./ArrayStorage.js');
-const BinHeapStorage = require('./BinHeapStorage.js');
-const {SimplePromise}= QueuePromise; 
+const ArrayStorage   = require('./storages/ArrayStorage.js');
+const BinHeapStorage = require('./storages/BinHeapStorage.js');
+const QueuePromise   = require('./promises/QueuePromise.js');
+const SimplePromise  = require('./promises/SimplePromise.js');
+const AbortError     = require('./AbortError.js');
 
-module.exports = class Queue extends EventEmitter{
+class Queue extends EventEmitter{
 	constructor(opts={}, defPrior=undefined){
 		opts = (typeof(opts)=='number') ? {delay: opts} : opts;
 		super();
@@ -138,3 +139,10 @@ module.exports = class Queue extends EventEmitter{
 		return this.storage.indexOf(promise);
 	}
 };
+
+module.exports = Queue;
+
+Object.entries({ArrayStorage, BinHeapStorage, QueuePromise, SimplePromise, AbortError}).forEach(([name, Class])=>{
+	module.exports[name] = Class;		
+})
+
