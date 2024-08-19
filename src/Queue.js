@@ -2,11 +2,12 @@ const EventEmitter   = require('node:events');
 const QueuePromise   = require('./QueuePromise.js');
 const ArrayStorage   = require('./ArrayStorage.js');
 const BinHeapStorage = require('./BinHeapStorage.js');
-
+const {SimplePromise}= QueuePromise; 
 
 module.exports = class Queue extends EventEmitter{
 	constructor(opts={}, defPrior=undefined){
 		opts = (typeof(opts)=='number') ? {delay: opts} : opts;
+		super();
 
 		this.delay           = opts.delay;
 		this.defaultPriority = opts.defaultPriority ?? defPrior;
@@ -16,6 +17,7 @@ module.exports = class Queue extends EventEmitter{
 		this.lastRunTs       = 0; 
 		this.finished        = 0;
 		this.startedAt       = Date.now();
+		this._tillEnd        = null;
 		
 		if(typeof(this.delay)!=='number' || isNaN(this.delay) || this.delay<=0){
 			throw new Error('Bad delay='+this.delay+' ('+typeof(this.delay)+')');
@@ -32,7 +34,7 @@ module.exports = class Queue extends EventEmitter{
 		}
 	}
 	usage(){
-		this.finished/(Math.floor((Date.now() - this.startedAt)/this.delay) + 1);
+		return Math.min(1, this.finished/(Math.floor((Date.now() - this.startedAt)/this.delay)));
 	}
 	get length(){
 		return this.storage.length;
@@ -41,7 +43,7 @@ module.exports = class Queue extends EventEmitter{
 		this.isDestroyed = true;
 		this.storage.clear();
 	}
-	async push(priority=undefined, cb=undefined){
+	push(priority=undefined, cb=undefined){
 		if(typeof(priority)==='function'){
 			cb       = priority;
 			priority = undefined;
@@ -60,8 +62,17 @@ module.exports = class Queue extends EventEmitter{
 		const promise = new QueuePromise(this, priority, cb);	
 		this.storage.push(promise);
 		this.emit('add', promise);
-		this.runCicle();
+		
+		process.nextTick(() => {
+			this.runCicle();
+		});
 		return promise;
+	}
+	tillEnd(){
+		if(this.storage.isEmpty()){
+			return null;
+		}
+		return (this._tillEnd ||= new SimplePromise());
 	}
 	calcNextRemain(){
 		return Math.max(0, this.delay - (Date.now() - this.lastRunTs));
@@ -85,7 +96,11 @@ module.exports = class Queue extends EventEmitter{
 				this.emit('run', promise, isEmpty);
 			}
 			if(isEmpty){
-				this.emit('empty');
+				if(this._tillEnd){
+					this._tillEnd.__resolve(null);
+				} 
+				this._tillEnd = null;
+				this.emit('end');
 				break;
 			}
 		}

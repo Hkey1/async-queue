@@ -21,7 +21,7 @@ module.exports = class CommonStorage{
 		item.isInStorage = false;
 	}
 	isEmpty(){
-		return this.data.length===0;
+		return this.length===0;
 	}
 	clear(){
 		while(true){

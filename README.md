@@ -40,6 +40,11 @@ For example, you use an external API and the number of requests per second is li
 	console.log(queue.remains()); //remains waiiting time in queue;
 ```
 
+### queue.tillEnd() return promise. It will be resolved when query ends
+```js
+	await queue.tillEnd();
+```
+
 ## promise
 ```js
 	const promise = queue.push();
@@ -79,7 +84,7 @@ Promise throws Queue.AbortError
 		defaultPriority : 50, 		
 	}); //OR new Queue(30, 50)
 
-	queue.push(101, ()=>console.log(10));
+	queue.push(101, ()=>console.log(101));
 	queue.push(10,  ()=>console.log(10));
 	queue.push(100, ()=>console.log(100));
 
