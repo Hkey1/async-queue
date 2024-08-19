@@ -18,12 +18,12 @@
     },
     "repository": {
         "type": "git",
-        "url": "git://github.com/hkey1/bin-heap"
+        "url": "https://github.com/Hkey1/async-queue"
     },
     "readme":"Async Queue (Throttler)",
     "readmeFilename": "Readme.md",
     "bugs": {
-        "url": "https://github.com/hkey1/bin-heap/issues"
+        "url": "https://github.com/Hkey1/async-queue/issues"
     },
-    "homepage": "https://github.com/hkey1/bin-heap"
+    "homepage": "https://github.com/Hkey1/async-queue"
 }
