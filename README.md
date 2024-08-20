@@ -10,7 +10,7 @@ For example, you use an external API and the number of requests per second is li
 
 ## Usage
 ```js
-	const Queue = require('async-queue');
+	const Queue = require('hkey-async-queue');
 	const queue = new Queue({delay: 30}); // OR new Queue(30);
 	//There will be a 30ms delay between element calls.
 	

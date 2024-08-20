@@ -30,6 +30,13 @@ function log(...args){
 	
 	log('remain3', p0.remain());
 	
+	const promise2 = queue.push(async ()=>{ // OR queue.push().then(someCb);
+		await new Promise(resolve=>setTimeout(resolve, 10));
+		return 'promise2 res';
+	});
+	log(await promise2);		
+	
+	
 	await queue.tillEnd();
 	log('remain4', p0.remain());
 	log('end');	
