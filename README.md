@@ -16,10 +16,9 @@ For example, you use an external API and the number of requests per second is li
 	
 	await queue.push();
 	
-	const promise2 = queue.push(async ()=>{ // OR queue.push().then(someCb);
-		return 'promise2';
-	});
-	console.log(await promise2);		
+	const promise = queue.push();
+	await promise2;
+	console.log();		
 ```
 ## queue
 ```js
@@ -71,9 +70,9 @@ For example, you use an external API and the number of requests per second is li
 ```
 
 ### promise.abort(errMsg)
-Promise throws Queue.AbortError
+Promise throws AbortError
 ```js
-	promise.abort('abort'); // OR promise.reject(new Queue.AbortError('abort'));
+	promise.abort();
 ```
 
 
@@ -84,9 +83,9 @@ Promise throws Queue.AbortError
 		defaultPriority : 50, 		
 	}); //OR new Queue(30, 50)
 
-	queue.push(101, ()=>console.log(101));
-	queue.push(10,  ()=>console.log(10));
-	queue.push(100, ()=>console.log(100));
+	queue.push(101).then(()=>console.log(101));
+	queue.push(10).then(()=>console.log(10));
+	queue.push(100).then(()=>console.log(100));
 
 	//101, 100, 10
 ```

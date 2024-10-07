@@ -1,11 +1,10 @@
-const EventEmitter   = require('node:events');
+const {Emitter}      = require('../../till-event/index.js');
+const {sleep}        = require('hkey-extended-promise');
 const ArrayStorage   = require('./storages/ArrayStorage.js');
 const BinHeapStorage = require('./storages/BinHeapStorage.js');
-const QueuePromise   = require('./promises/QueuePromise.js');
-const SimplePromise  = require('./promises/SimplePromise.js');
-const AbortError     = require('./AbortError.js');
+const QueuePromise   = require('./QueuePromise.js');
 
-class Queue extends EventEmitter{
+class Queue extends Emitter{
 	constructor(opts={}, defPrior=undefined){
 		opts = (typeof(opts)=='number') ? {delay: opts} : opts;
 		super();
@@ -18,7 +17,6 @@ class Queue extends EventEmitter{
 		this.lastRunTs       = 0; 
 		this.finished        = 0;
 		this.startedAt       = Date.now();
-		this._tillEnd        = null;
 		
 		if(typeof(this.delay)!=='number' || isNaN(this.delay) || this.delay<=0){
 			throw new Error('Bad delay='+this.delay+' ('+typeof(this.delay)+')');
@@ -34,6 +32,9 @@ class Queue extends EventEmitter{
 			throw new Error('You set defaultPriority, but storage not supports Priority')
 		}
 	}
+	tillEnd(){
+		return this.tillEvent('end');
+	}
 	usage(){
 		return Math.min(1, this.finished/(Math.floor((Date.now() - this.startedAt)/this.delay)));
 	}
@@ -44,14 +45,7 @@ class Queue extends EventEmitter{
 		this.isDestroyed = true;
 		this.storage.clear();
 	}
-	push(priority=undefined, cb=undefined){
-		if(typeof(priority)==='function'){
-			cb       = priority;
-			priority = undefined;
-		}
-		if(typeof(cb)!=='function' && cb!==undefined){
-			throw new Error('Bad cb='+cb+' ('+typeof(cb)+')');
-		}
+	push(priority=undefined){
 		if(this.hasPriority){
 			priority ||= this.defaultPriority;
 			if(typeof(priority)!=='number' || isNaN(priority)){
@@ -60,7 +54,7 @@ class Queue extends EventEmitter{
 		} else if(priority!==undefined){
 			throw new Error('You set priority, but storage not supports Priority');
 		}
-		const promise = new QueuePromise(this, priority, cb);	
+		const promise = new QueuePromise(this, priority);	
 		this.storage.push(promise);
 		this.emit('add', promise);
 		
@@ -68,12 +62,6 @@ class Queue extends EventEmitter{
 			this.runCicle();
 		});
 		return promise;
-	}
-	tillEnd(){
-		if(this.storage.isEmpty()){
-			return null;
-		}
-		return (this._tillEnd ||= new SimplePromise());
 	}
 	calcNextRemain(){
 		return Math.max(0, this.delay - (Date.now() - this.lastRunTs));
@@ -84,23 +72,19 @@ class Queue extends EventEmitter{
 		while(this.isDestroyed !== true){
 			const remain = this.calcNextRemain();
 			if(remain){
-				await new Promise(resolve=>setTimeout(resolve, remain));
+				await sleep(remain);//new Promise(resolve=>setTimeout(resolve, remain)); //sleep
 				if(this.isDestroyed === true) break;
 			}
 			const promise = this.storage.shift();
 			let   isEmpty = !promise;	
 			if(promise){
 				this.lastRunTs = Date.now();
-				promise.run();
+				promise.resolve();
 				isEmpty = !!this.storage.isEmpty();
 				this.finished++;
 				this.emit('run', promise, isEmpty);
 			}
 			if(isEmpty){
-				if(this._tillEnd){
-					this._tillEnd.__resolve(null);
-				} 
-				this._tillEnd = null;
 				this.emit('end');
 				break;
 			}
@@ -108,9 +92,6 @@ class Queue extends EventEmitter{
 		this.inCicle  = false;
 	}
 	remain(){
-		if(this.isEmpty){
-			return 0;
-		}
 		const len = this.storage.length;
 		if(len===0){
 			return 0;
@@ -138,11 +119,12 @@ class Queue extends EventEmitter{
 	indexOf(promise){
 		return this.storage.indexOf(promise);
 	}
+	abortAll(){
+		this.storage.shiftAll().forEach(promise=>promise.abort());
+	}
 };
 
 module.exports = Queue;
-
-Object.entries({ArrayStorage, BinHeapStorage, QueuePromise, SimplePromise, AbortError}).forEach(([name, Class])=>{
-	module.exports[name] = Class;		
-})
-
+module.exports.Queue          = Queue;
+module.exports.ArrayStorage   = ArrayStorage;
+module.exports.BinHeapStorage = BinHeapStorage;

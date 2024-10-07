@@ -17,6 +17,18 @@ module.exports = class CommonStorage{
 			}
 		}
 	}
+	shiftAll(){
+		const res = [];
+		while(true){
+			const item = this.shift();
+			if(!item){
+				break;
+			} else {
+				res.push(item);
+			}
+		}
+		return res;
+	}
 	remove(item){
 		item.isInStorage = false;
 	}

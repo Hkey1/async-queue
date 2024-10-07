@@ -9,9 +9,10 @@
     "license": "MIT",
     "description": "Async Queue (Throttler). For rate limiting. For example, you use an external API and the number of requests per second is limited there.",
     "keywords": [
-        "throttler", "throttle", "rate-limits", "rate-limiter","rateLimits", "rateLimiter", "heap", "queue" 
+        "assert", "throttle", "rate-limits", "rate-limiter","rateLimits", "rateLimiter", "heap", "queue" 
     ],
     "dependencies": {
+		"hkey-extended-promise": "*"
     },
     "engines": {
         "node": ">=0.1.0"

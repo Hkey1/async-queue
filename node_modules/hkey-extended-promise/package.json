@@ -1,0 +1,29 @@
+{
+    "name": "hkey-extended-promise",
+    "version": "0.0.1",
+    "main": "./index.js",
+    "scripts": {
+        "test": "echo \"Error: no test specified\" && exit 1"
+    },
+    "author": "Andrey Belousoff <a.v.belousoff@gmail.com>",
+    "license": "MIT",
+    "description": "Extended Promise with resolve(), reject(), abort() methods, timeout, and much more",
+    "keywords": [
+        "promise", "resolve", "reject", "async", "await" 
+    ],
+    "dependencies": {
+    },
+    "engines": {
+        "node": ">=0.1.0"
+    },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/Hkey1/extended-promise"
+    },
+    "readme":"Async Queue (Throttler)",
+    "readmeFilename": "README.md",
+    "bugs": {
+        "url": "https://github.com/Hkey1/extended-promise/issues"
+    },
+    "homepage": "https://github.com/Hkey1/extended-promise"
+}
