@@ -1,5 +1,5 @@
 const {Emitter}      = require('../../till-event/index.js');
-const {sleep}        = require('hkey-extended-promise');
+//const {sleep}        = require('hkey-extended-promise');
 const ArrayStorage   = require('./storages/ArrayStorage.js');
 const BinHeapStorage = require('./storages/BinHeapStorage.js');
 const QueuePromise   = require('./QueuePromise.js');
@@ -17,6 +17,7 @@ class Queue extends Emitter{
 		this.lastRunTs       = 0; 
 		this.finished        = 0;
 		this.startedAt       = Date.now();
+		this.sleepPromise    = null; 
 		
 		if(typeof(this.delay)!=='number' || isNaN(this.delay) || this.delay<=0){
 			throw new Error('Bad delay='+this.delay+' ('+typeof(this.delay)+')');
@@ -44,17 +45,36 @@ class Queue extends Emitter{
 	destroy(){
 		this.isDestroyed = true;
 		this.storage.clear();
-	}
-	push(priority=undefined){
-		if(this.hasPriority){
-			priority ||= this.defaultPriority;
-			if(typeof(priority)!=='number' || isNaN(priority)){
-				throw new Error('Bad priority='+priority+' ('+typeof(priority)+')');
-			}
-		} else if(priority!==undefined){
-			throw new Error('You set priority, but storage not supports Priority');
+		if(this.sleepPromise){
+			this.sleepPromise.resolve(true);
 		}
+		this.emit('destroy');
+	}
+	skipDelay(){
+		if(this.sleepPromise){
+			this.sleepPromise.resolve(true);
+		} else {
+			this.skipNextSleep = true;
+		}
+	}
+	onAbortSignal(promise){
+		
+	}
+	push(priority=undefined, abortSignal=undefined){
+		if(priority instanceof AbortSignal){
+			[priority, abortSignal] = [abortSignal, priority]
+		}
+		abortSignal===undefined || (assert(abortSignal instanceof AbortSignal))
+		priority===undefined    || (assert.equal(typeof priority, 'number') && this.hasPriority)
+		
+		priority ||= this.hasPriority ? this.defaultPriority : undefined;
+
 		const promise = new QueuePromise(this, priority);	
+		
+		if(abortSignal){
+			abortSignal.addEventListener('abort',()=>promise.abort())
+		}
+		
 		this.storage.push(promise);
 		this.emit('add', promise);
 		
@@ -71,10 +91,13 @@ class Queue extends Emitter{
 		this.inCicle = true;
 		while(this.isDestroyed !== true){
 			const remain = this.calcNextRemain();
-			if(remain){
-				await sleep(remain);//new Promise(resolve=>setTimeout(resolve, remain)); //sleep
+			if(remain && remain>0 && !this.skipNextSleep){
+				this.sleepPromise = sleep(remain);
+				await this.sleepPromise; 
+				this.sleepPromise = null;
 				if(this.isDestroyed === true) break;
 			}
+			this.skipNextSleep = false;			
 			const promise = this.storage.shift();
 			let   isEmpty = !promise;	
 			if(promise){
@@ -124,7 +147,7 @@ class Queue extends Emitter{
 	}
 };
 
-module.exports = Queue;
+module.exports                = Queue;
 module.exports.Queue          = Queue;
 module.exports.ArrayStorage   = ArrayStorage;
 module.exports.BinHeapStorage = BinHeapStorage;

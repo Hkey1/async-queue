@@ -14,6 +14,9 @@ class BinHeapStorage extends ArrayStorage{
     }
     _shift() {
         const last = this.arr.pop();
+		if(!last){
+			return last;
+		}
         this._removeOldIndex(last, this.arr.length);
 		if (this.arr.length === 0){
 			return last;

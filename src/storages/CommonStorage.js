@@ -36,11 +36,6 @@ module.exports = class CommonStorage{
 		return this.length===0;
 	}
 	clear(){
-		while(true){
-			const item = this.shift()
-			if(!item){
-				break;
-			}
-		}
+		this.shiftAll();
 	}
 };
