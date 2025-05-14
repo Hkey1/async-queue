@@ -11,7 +11,7 @@ class ExtendedPromise extends Promise{
 		assert(typeof(opts)==='object' || typeof(opts)==='function');
 		opts = (typeof(opts)==='function') ? {callback : opts} : opts
 		
-		const {onFinish, onReject, onResolve, afterReject, afterResolve, timeout, abort, ref, callback, onInit, parent} = opts;	
+		const {onFinish, onReject, onResolve, afterReject, afterResolve, afterFinish, timeout, abort, ref, callback, onInit, parent} = opts;	
 		assert(abort    === undefined || abort    === false || abort === true  || abort instanceof AbortController || abort instanceof AbortSignal);
 		assert(timeout  === undefined || timeout  === false || (typeof(timeout)==='number' && timeout>=0 && !isNaN(timeout)));
 		assert(ref      === undefined || ref      === false || ref === true);
@@ -21,6 +21,7 @@ class ExtendedPromise extends Promise{
 		assert(onResolve    === undefined  || onResolve    === false || typeof(onResolve)==='function');
 		assert(afterReject  === undefined  || afterReject  === false || typeof(afterReject)==='function');
 		assert(afterResolve === undefined  || afterResolve === false || typeof(afterResolve)==='function');
+		assert(afterFinish  === undefined  || afterFinish  === false || typeof(afterFinish)==='function');
 
 		let _resolve, _reject;
 		super(function(__resolve, __reject){
@@ -33,15 +34,16 @@ class ExtendedPromise extends Promise{
 		
 		this._resolve       = _resolve;
 		this._reject        = _reject;
+
 		this._onFinish      = onFinish;
 		this._onReject      = onReject;
 		this._onResolve     = onResolve;
 		this._afterReject   = afterReject;
 		this._afterResolve  = afterResolve;
+		this._afterFinish   = afterFinish;
+		
 		this._isRef         = ref!==false;
-		
 		this.firstParent    = this;
-		
 		this.isFinished     = false;
 		this.result         = undefined;
 		this.error          = undefined;
@@ -238,6 +240,10 @@ class ExtendedPromise extends Promise{
 					this._afterResolve(this, this.result);
 				}
 			}
+			if(this._afterFinish){
+				this._afterFinish(this, this.result, this.error);
+			}
+			
 		}
 	}
 	onChild(child, methodName, args){
